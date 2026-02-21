@@ -1,3 +1,4 @@
+import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -15,37 +16,41 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
 
         try {
-          const res = await fetch(`${process.env.API}/auth/signin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          });
-
-          if (!res.ok) {
-            console.error("Signin API error:", await res.text());
-            return null;
-          }
+          const res = await fetch(
+            "https://ecommerce.routemisr.com/api/v1/auth/signin",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: credentials.email,
+                password: credentials.password,
+              }),
+            }
+          );
 
           const payload = await res.json();
 
-          if (payload.message === "success") {
-            return {
-              id: payload.user.id.toString(),
-              name: payload.user.name,
-              email: payload.user.email,
-              accessToken: payload.token,
-            } as any;
+          console.log("LOGIN RESPONSE:", payload);
+
+          if (!res.ok || payload.message !== "success") {
+            return null;
           }
 
-          return null;
-        } catch (err) {
-          console.error("Authorize error:", err);
+          return {
+            id: payload.user._id,
+            name: payload.user.name,
+            email: payload.user.email,
+            accessToken: payload.token,
+          };
+        } catch (error) {
+          console.error("Authorize Error:", error);
           return null;
         }
       },
@@ -65,7 +70,7 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        (session.user as any).id = token.id;
         session.user.name = token.name;
         session.user.email = token.email;
       }
@@ -81,3 +86,7 @@ export const authOptions: NextAuthOptions = {
 
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };

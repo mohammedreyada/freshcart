@@ -21,5 +21,5 @@ export async function getMyToken(): Promise<string | null> {
     secret: process.env.AUTH_SECRET!,
   })) as MyToken | null;
 
-  return decoded?.token ?? null;
+return (decoded as any)?.accessToken ?? null;
 }
