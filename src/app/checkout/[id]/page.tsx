@@ -43,10 +43,11 @@ export default function CheckoutForm() {
       if (res?.session?.url) {
         toast.success("Redirecting to payment...");
         reset();
-        router.push(res.session.url);
+        router.push(res.session.url); // هنا بنعمل بوش للرابط
       } else {
         throw new Error("Invalid session URL");
       }
+      console.log("Payment URL:", res.session.url);
     } catch (error: unknown) {
       console.error("Checkout error:", error);
 
@@ -119,6 +120,7 @@ export default function CheckoutForm() {
           />
         </FieldGroup>
 
+        {/* زرار الدفع */}
         <Button
           type="submit"
           className="bg-emerald-600 w-full py-2 mt-4 hover:bg-emerald-700 transition"
